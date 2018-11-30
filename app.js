@@ -1,6 +1,16 @@
 var express = require('express');
 var app = express();
 
+var Client = require('pg').Client;
+var bd = new Client({
+	user: 'postgres',
+	host: 'localhost',
+	database: 'postgres',
+	password: 'postgres',
+	port: 5432
+});
+bd.connect();
+
 app.get('/get_event_products', function(req, response){
 
 });
