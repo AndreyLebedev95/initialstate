@@ -56,8 +56,8 @@ app.post('/uploader', function(req, res) {
         }).catch(function(res) {
           res.sendStatus(500);
         })
-        res.sendStatus(200);
       }
+      res.sendStatus(200);
 
     }).catch(function(error){
       res.sendStatus(500);
@@ -315,9 +315,16 @@ app.post('/get_debitor_list', function(req, res) {
     Object.keys(rez).forEach(function(person){
       var member=rez[person];
       member.ammount=member.ammount/100;
-      Object.keys(member.detail).forEach(function(creditorId){
-        member.detail[creditorId].ammount=member.detail[creditorId].ammount/100;
-      })
+      if (!member.ammount) {
+        member.detail = {};
+      } else {
+        Object.keys(member.detail).forEach(function(creditorId){
+          member.detail[creditorId].ammount=member.detail[creditorId].ammount/100;
+          if (!member.detail[creditorId].ammount) {
+            delete member.detail[creditorId];
+          }
+        })
+      }
     })
 
 
