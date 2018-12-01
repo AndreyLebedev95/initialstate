@@ -35,24 +35,32 @@ getProductsModel('t=20181130T212300&s=59.00&fn=8710000100598126&i=101475&fp=4664
 })
 
 var getChecksWithProducts = function(eventId) {
-  return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid WHERE eventid = $1", [eventId]).then(function(res) {
+  return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid LEFT JOIN debitor ON debitor.productid = product.id WHERE eventid = $1", [eventId]).then(function(res) {
     var temp = {};
     for (var i = 0; i < res.rows.length; i++) {
       if (!temp[res.rows[i].checkid]) {
-        temp[res.rows[i].checkid] = {
-          nameCheck: res.rows[i].seller,
-          products: [{
-            name: res.rows[i].name,
-            price: res.rows[i].price,
-            productId: res.rows[i].id
-          }]
-        }
-      } else {
-        temp[res.rows[i].checkid].products.push({
+        let product = {};
+        product[res.rows[i].id] = {
           name: res.rows[i].name,
           price: res.rows[i].price,
-          productId: res.rows[i].id
-        })
+          productId: res.rows[i].id,
+          persons: res.rows[i].personid ? [res.rows[i].personid] : []
+        }
+        temp[res.rows[i].checkid] = {
+          nameCheck: res.rows[i].seller,
+          products: product
+        }
+      } else {
+        if (!temp[res.rows[i].checkid].products[res.rows[i].id]) {
+          temp[res.rows[i].checkid].products[res.rows[i].id] = ({
+            name: res.rows[i].name,
+            price: res.rows[i].price,
+            productId: res.rows[i].id,
+            persons: res.rows[i].personid ? [res.rows[i].personid] : []
+          })
+        } else {
+          temp[res.rows[i].checkid].products[res.rows[i].id].persons.push(res.rows[i].personid);
+        }
       }
     }
     return temp;
@@ -77,16 +85,30 @@ app.get('/', function(req, res) {
   res.send('hello')
 });
 
-app.get('/get_event_products/:eventId', function(req, response) {
+app.post('/get_event_products/:eventId', function(req, response) {
+  console.log(req.body)
+  let body = req.body;
+  let membersCount = body.members.length;
   let eventId = req.params.eventId;
   var result = [];
   getChecksWithProducts(eventId).then(function(temp) {
     Object.keys(temp).forEach(function(checkId) {
       let check = temp[checkId];
+      let checkProducts = [];
+      Object.keys(check.products).forEach(function (productId) {
+        if (check.products[productId].persons.length < (membersCount/2)) {
+          check.products[productId].isInclude = true;
+        } else {
+          check.products[productId].persons = body.members.filter(function (memberId) {
+            return !(check.products[productId].persons.indexOf(memberId) + 1);
+          });
+        }
+        checkProducts.push(check.products[productId]);
+      });
       result.push({
         checkId: checkId,
         nameCheck: check.nameCheck,
-        products: check.products
+        products: checkProducts
       })
     });
     response.send(JSON.stringify(result))
@@ -103,9 +125,8 @@ app.get('/get_checks_total/:eventId', function(req, response) {
       result.push({
         checkId: checkId,
         nameCheck: check.nameCheck,
-        total: check.products.reduce(function(res, product) {
-          console.log(product);
-          return res + product.price
+        total: Object.keys(check.products).reduce(function(res, productId) {
+          return res + check.products[productId].price
         }, 0)
       })
     });
@@ -223,7 +244,17 @@ app.post('/get_debitor_list', function(req, res) {
 					}
 				})
 			}
-		})
+		});
+
+    Object.keys(rez).forEach(function(person){
+      var member=rez[person];
+      member.ammount=member.ammount/100;
+      Object.keys(member.detail).forEach(function(creditorId){
+        member.detail[creditorId].ammount=member.detail[creditorId].ammount/100;
+      })
+    })
+
+
 		res.send(rez);
 	});
 });
