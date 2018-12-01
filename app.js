@@ -1,9 +1,7 @@
-var express = require('express');
+﻿var express = require('express');
 const uuid = require('uuid/v4');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var app = express();
-
-var bpars = require('body-parser');
 
 app.use(bodyParser.json());
 
@@ -23,7 +21,7 @@ var products = {
       price: 599
     }
   ]
-}
+};
 
 var getChecksWithProducts = function(eventId) {
   return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid WHERE eventid = $1", [eventId]).then(function(res) {
@@ -48,7 +46,7 @@ var getChecksWithProducts = function(eventId) {
     }
     return temp;
   })
-}
+};
 
 var EVENT_ID = 'e36e597d-28fe-47d7-bc41-84d0a00faba0';
 var PAYER_ID = '5e12ceab-59c2-4c54-94de-99bd2c543cad';
@@ -64,10 +62,9 @@ var bd = new Client({
 });
 bd.connect();
 
-app.use(brars.json());
 app.get('/', function(req, res) {
   res.send('hello')
-})
+});
 
 app.get('/get_event_products/:eventId', function(req, response) {
   let eventId = req.params.eventId;
@@ -80,7 +77,7 @@ app.get('/get_event_products/:eventId', function(req, response) {
         nameCheck: check.nameCheck,
         products: check.products
       })
-    })
+    });
     response.send(JSON.stringify(result))
   })
 });
@@ -100,7 +97,7 @@ app.get('/get_checks_total/:eventId', function(req, response) {
           return res + product.price
         }, 0)
       })
-    })
+    });
     response.send(JSON.stringify(result))
   })
 });
