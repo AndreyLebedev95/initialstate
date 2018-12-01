@@ -122,8 +122,101 @@ app.post('/remove_all_product_payers', function(req, res) {
 	bd.query("DELETE FROM debitor WHERE productid = $1", [body.productId]);
 });
 app.post('/get_debitor_list', function(req, res) {
-	bd.query('SELECT debitor FROM payments WHERE event_id = $1',[req.body.event_id]).then(function(result){
-		res.send(result.rows);
+	var body = req.body;
+	bd.query('SELECT debitor FROM payments WHERE event_id = $1',[body.eventId]).then(function(result){
+		var dates = result.rows;
+		var rez = {};
+		var members = body.members;
+		members.forEach(function (id) {
+			rez[id] = {
+				ammount: 0,
+				detail: {}
+			}
+		})
+		for(var i=0;i<dates.length;i++){
+			if (!products[dates[i].productId]) {
+				products[dates[i].productId] = {
+					payerId: dates[i].payerId,
+					price: dates[i].price,
+					persons: []
+				}
+			}
+			if (dates[i].personId) {
+				products[dates[i].productId].persons.push(dates[i].personId);
+			}
+		}
+		Object.keys(products).forEach(function (productId) {
+			var product = products[productId];
+			if (product.persons.length==0){
+				product.persons = members;
+			}
+			product.price = parseInt(product.price / product.persons.length) * product.persons.length;
+			rez[product.payerId].ammount+=product.price
+			for(var i=0;i<product.persons.length;i++){
+				var pay =product.price/product.persons.length;
+				rez[product.persons[i]].ammount-=pay;
+				if (product.payerId != product.persons[i]) {
+					if(!rez[product.payerId].detail[product.persons[i]]){
+						rez[product.payerId].detail[product.persons[i]]={};
+						rez[product.payerId].detail[product.persons[i]].ammount=pay;
+					} else {
+						rez[product.payerId].detail[product.persons[i]].ammount+=pay
+					}
+					if (!rez[product.persons[i]].detail[product.payerId]){
+						rez[product.persons[i]].detail[product.payerId]={};
+						rez[product.persons[i]].detail[product.payerId].ammount=-pay;
+
+					} else{
+						rez[product.persons[i]].detail[product.payerId].ammount-=pay;
+					}
+				}
+			}
+		})
+		Object.keys(rez).forEach(function(memberId){
+			var member = rez[memberId];
+			if (member.ammount > 0) {
+				Object.keys(member.detail).forEach(function(creditorId){
+					var creditor = member.detail[creditorId];
+					if (creditor.ammount < 0) {
+						while(creditor.ammount != 0) {
+							Object.keys(member.detail).forEach(function(debitorId){
+								var debitor = member.detail[debitorId];
+								if (debitor.ammount > 0) {
+									var pay = Math.min(Math.abs(creditor.ammount), debitor.ammount);
+									member.detail[debitorId].ammount -= pay;
+									member.detail[creditorId].ammount += pay;
+									rez[creditorId].detail[memberId].ammount -= pay;
+									rez[creditorId].detail[debitorId].ammount += pay;
+									rez[debitorId].detail[memberId].ammount += pay;
+									rez[debitorId].detail[creditorId].ammount -= pay;
+								}
+							})
+						}
+					}
+				})
+			} else {
+				Object.keys(member.detail).forEach(function(creditorId){
+					var creditor = member.detail[creditorId];
+					if (creditor.ammount > 0) {
+						while(creditor.ammount != 0) {
+							Object.keys(member.detail).forEach(function(debitorId){
+								var debitor = member.detail[debitorId];
+								if (debitor.ammount < 0) {
+									var pay = Math.min(Math.abs(debitor.ammount), creditor.ammount);
+									member.detail[debitorId].ammount += pay;
+									member.detail[creditorId].ammount -= pay;
+									rez[creditorId].detail[memberId].ammount += pay;
+									rez[creditorId].detail[debitorId].ammount -= pay;
+									rez[debitorId].detail[memberId].ammount -= pay;
+									rez[debitorId].detail[creditorId].ammount += pay;
+								}
+							})
+						}
+					}
+				})
+			}
+		})
+		res.send(rez);
 	});
 });
 app.post('/get_money_requests', function(req, res){
