@@ -26,7 +26,13 @@ function getProductsModel(qr){
     });
   });
 }
-
+var products;
+getProductsModel('t=20181130T212300&s=59.00&fn=8710000100598126&i=101475&fp=466448953&n=1 ').then(function (res) {
+  console.log(res);
+  products = res;
+}).catch(function (err) {
+  console.log(err);
+})
 
 var getChecksWithProducts = function(eventId) {
   return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid WHERE eventid = $1", [eventId]).then(function(res) {
@@ -123,7 +129,7 @@ app.post('/remove_all_product_payers', function(req, res) {
 });
 app.post('/get_debitor_list', function(req, res) {
 	var body = req.body;
-	bd.query('SELECT debitor FROM payments WHERE event_id = $1',[body.eventId]).then(function(result){
+	bd.query('SELECT product.id as productid, payerid, personid, price FROM (checks LEFT JOIN product ON checks.id = product.checkid) LEFT JOIN debitor ON debitor.productid = product.id WHERE eventid = $1',[body.eventId]).then(function(result){
 		var dates = result.rows;
 		var rez = {};
     var products = {};
@@ -135,15 +141,15 @@ app.post('/get_debitor_list', function(req, res) {
 			}
 		})
 		for(var i=0;i<dates.length;i++){
-			if (!products[dates[i].productId]) {
-				products[dates[i].productId] = {
-					payerId: dates[i].payerId,
+			if (!products[dates[i].productid]) {
+				products[dates[i].productid] = {
+					payerId: dates[i].payerid,
 					price: dates[i].price,
 					persons: []
 				}
 			}
-			if (dates[i].personId) {
-				products[dates[i].productId].persons.push(dates[i].personId);
+			if (dates[i].personid) {
+				products[dates[i].productid].persons.push(dates[i].personid);
 			}
 		}
     console.log(products);
