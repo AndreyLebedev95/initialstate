@@ -55,7 +55,7 @@ var getChecksWithProducts = function(eventId) {
 
 var EVENT_ID = 'e36e597d-28fe-47d7-bc41-84d0a00faba0';
 var PAYER_ID = '5e12ceab-59c2-4c54-94de-99bd2c543cad';
-var PRODUCT_ID = 'ad5653c3-513b-48c2-9695-8b70ec33b8e0';
+var PRODUCT_ID = 'ad5653c3-513b -48c2-9695-8b70ec33b8e0';
 
 var Client = require('pg').Client;
 var bd = new Client({
@@ -126,6 +126,7 @@ app.post('/get_debitor_list', function(req, res) {
 	bd.query('SELECT debitor FROM payments WHERE event_id = $1',[body.eventId]).then(function(result){
 		var dates = result.rows;
 		var rez = {};
+    var products = {};
 		var members = body.members;
 		members.forEach(function (id) {
 			rez[id] = {
@@ -145,6 +146,7 @@ app.post('/get_debitor_list', function(req, res) {
 				products[dates[i].productId].persons.push(dates[i].personId);
 			}
 		}
+    console.log(products);
 		Object.keys(products).forEach(function (productId) {
 			var product = products[productId];
 			if (product.persons.length==0){
@@ -233,14 +235,14 @@ app.post('/get_money_requests', function(req, res){
 });
 function createYandexMoneyURL(row)
 {
-	 	
-	return ("https://money.yandex.ru/transfer?receiver=" + row.req + "&sum=" + 
-	row.sum + "&successURL=https%3A%2F%2Fmoney.yandex.ru%2Fquickpay%2Fbutton-widget%3Ftargets%3D%25D0%259E%25D0%25BF%25D0%25BB%25D0%25B0%25D1%2582%25D0%25B0%2520%25D1%2587%25D0%25B5%25D0%25BA%25D0%25B0%26default-sum%3D" + 
-	row.sum + "%26button-text%3D11%26any-card-payment-type%3Don%26button-size%3Dm%26button-color%3Dorange%26successURL%3D%26quickpay%3Dsmall%26account%3D" + 
-	row.req + "&quickpay-back-url=https%3A%2F%2Fmoney.yandex.ru%2Fquickpay%2Fbutton-widget%3Ftargets%3D%25D0%259E%25D0%25BF%25D0%25BB%25D0%25B0%25D1%2582%25D0%25B0%2520%25D1%2587%25D0%25B5%25D0%25BA%25D0%25B0%26default-sum%3D" + 
+
+	return ("https://money.yandex.ru/transfer?receiver=" + row.req + "&sum=" +
+	row.sum + "&successURL=https%3A%2F%2Fmoney.yandex.ru%2Fquickpay%2Fbutton-widget%3Ftargets%3D%25D0%259E%25D0%25BF%25D0%25BB%25D0%25B0%25D1%2582%25D0%25B0%2520%25D1%2587%25D0%25B5%25D0%25BA%25D0%25B0%26default-sum%3D" +
+	row.sum + "%26button-text%3D11%26any-card-payment-type%3Don%26button-size%3Dm%26button-color%3Dorange%26successURL%3D%26quickpay%3Dsmall%26account%3D" +
+	row.req + "&quickpay-back-url=https%3A%2F%2Fmoney.yandex.ru%2Fquickpay%2Fbutton-widget%3Ftargets%3D%25D0%259E%25D0%25BF%25D0%25BB%25D0%25B0%25D1%2582%25D0%25B0%2520%25D1%2587%25D0%25B5%25D0%25BA%25D0%25B0%26default-sum%3D" +
 	row.sum + "%26button-text%3D11%26any-card-payment-type%3Don%26button-size%3Dm%26button-color%3Dorange%26successURL%3D%26quickpay%3Dsmall%26account%3D"+
 	row.req + "%20чека&form-comment=Оплата%20чека&short-dest=&quickpay-form=small");
-	
+
 };
 app.post('/upload', function(req, res) {
   let checkId = uuid();
