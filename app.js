@@ -77,10 +77,14 @@ function getQr(buffer){
         }
         var qr = new QrCode();
         qr.callback = function(err, value) {
-            if (err || !value) {
+            if (err) {
                 reject(err);
             }
-            resolve(value.result);
+            if (value && value.result) {
+              resolve(value.result);
+            } else {
+              reject();
+            }
             console.log(value);
         };
         qr.decode(image.bitmap);
