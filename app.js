@@ -52,15 +52,14 @@ app.post('/uploader', function(req, res) {
       for (var index_product_id = 0; index_product_id < products.items.length; index_product_id++) {
         let productId = uuid();
         bd.query("INSERT INTO product (id, name, price, checkid) VALUES ($1, $2, $3, $4);", [productId, products['items'][index_product_id]['name'], products['items'][index_product_id]['price'], checkId]).then(function(res) {
-          console.log(res)
+          res.sendStatus(200);
         }).catch(function(res) {
-          console.log(res)
+          res.sendStatus(500);
         })
       }
 
-      res.status(200);
     }).catch(function(error){
-      res.status(404);
+      res.sendStatus(500);
     });
       
   });
