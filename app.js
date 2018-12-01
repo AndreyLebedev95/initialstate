@@ -52,7 +52,7 @@ app.post('/uploader', function(req, res) {
       for (var index_product_id = 0; index_product_id < products.items.length; index_product_id++) {
         let productId = uuid();
         bd.query("INSERT INTO product (id, name, price, checkid) VALUES ($1, $2, $3, $4);", [productId, products['items'][index_product_id]['name'], products['items'][index_product_id]['price'], checkId]).then(function(res) {
-          
+          //res.sendStatus(200);
         }).catch(function(res) {
           res.sendStatus(500);
         })
@@ -152,7 +152,9 @@ app.post('/get_event_products/:eventId', function(req, response) {
       let check = temp[checkId];
       let checkProducts = [];
       Object.keys(check.products).forEach(function (productId) {
-        if (check.products[productId].persons.length < (membersCount/2)) {
+          if (check.products[productId].persons.length == membersCount) {
+              check.products[productId].persons = [];
+          } else if (check.products[productId].persons.length < (membersCount/2)) {
           check.products[productId].isInclude = true;
         } else {
           check.products[productId].persons = body.members.filter(function (memberId) {
@@ -196,8 +198,16 @@ app.post('/add_product_payer', function(req, res) {
   bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [body.personId, body.productId]);
 });
 
+app.post('/add_some_product_payers', function(req, res){
+    let body = req.body;
+    body.members.forEach(function(personId){
+        bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [personId, body.productId])
+    });
+})
+
 app.post('/remove_product_payer', function(req, res) {
 	var body = req.body;
+	console.log(body);
 	bd.query("DELETE FROM debitor WHERE personid = $1 and productid = $2", [body.personId, body.productId]);
 });
 app.post('/remove_all_product_payers', function(req, res) {
