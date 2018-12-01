@@ -103,14 +103,17 @@ app.get('/get_checks_total/:eventId', function(req, response) {
 
 
 app.post('/add_product_payer', function(req, res) {
-  bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [PAYER_ID, PRODUCT_ID]);
+	var body = req.body;
+  bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [body.personId, body.productId]);
 });
 
 app.post('/remove_product_payer', function(req, res) {
-	bd.query("DELETE FROM debitor WHERE personid = $1 and productid = $2", [PAYER_ID, PRODUCT_ID]);
+	var body = req.body;
+	bd.query("DELETE FROM debitor WHERE personid = $1 and productid = $2", [body.personId, body.productId]);
 });
 app.post('/remove_all_product_payers', function(req, res) {
-	bd.query("DELETE FROM debitor WHERE productid = $1", [PRODUCT_ID]);
+	var body = req.body;
+	bd.query("DELETE FROM debitor WHERE productid = $1", [body.productId]);
 });
 app.post('/get_debitor_list', function(req, res) {
 
