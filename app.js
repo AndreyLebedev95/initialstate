@@ -6,12 +6,6 @@ var app = express();
 
 app.use(bodyParser.json());
 
-
-var products;
-getProductsModel("t=20181114T1515&s=4420.00&fn=8710000101582032&i=66506&fp=3824248540&n=1").then(function(res){
-  products = res;
-});
-
 /*
 Принимает параметр qr - результат сканирования
 */
@@ -20,7 +14,7 @@ function getProductsModel(qr){
     uri: `http://localhost:3002/get?${qr}`,
     method: 'GET',
     json:true
-  }
+  };
   return new Promise(function(resolve, reject){
       request(options, function(error, response, body){
         if(error){
