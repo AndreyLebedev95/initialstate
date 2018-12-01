@@ -1,7 +1,11 @@
 var express = require('express');
 const request = require('request');
 const uuid = require('uuid/v4');
+const fileUpload = require('express-fileupload');
 var bodyParser = require('body-parser');
+var QrCode = require('qrcode-reader');
+var Jimp = require("jimp");
+
 var app = express();
 
 app.use(bodyParser.json());
@@ -26,13 +30,59 @@ function getProductsModel(qr){
     });
   });
 }
-var products;
-getProductsModel('t=20181130T212300&s=59.00&fn=8710000100598126&i=101475&fp=466448953&n=1 ').then(function (res) {
-  console.log(res);
-  products = res;
-}).catch(function (err) {
-  console.log(err);
-})
+
+app.use(fileUpload());
+app.post('/uploader', function(req, res) {
+  if (Object.keys(req.files).length == 0) {
+    return res.status(400).send('Файл не загружен');
+  }
+
+  let sampleFile = req.files.sampleFile;
+  var buffer = sampleFile.data;
+
+  getQr(buffer).then(function(result){
+      res.send(result);
+  });
+
+});
+
+app.post('/uploader64', function(req, res) {
+  if (Object.keys(req.files).length == 0) {
+    return res.status(400).send('Файл не загружен');
+  }
+
+  let sampleFile = req.files.sampleFile;
+  var buffer = sampleFile.data;
+  res.send(result);
+
+  // getQr(buffer).then(function(result){
+  //     res.send(result);
+  // });
+
+});
+
+
+function getQr(buffer){
+  return new Promise(function(resolve, reject){
+    
+      Jimp.read(buffer, function(err, image) {
+        if (err) {
+            console.error(err);
+        }
+        var qr = new QrCode();
+        qr.callback = function(err, value) {
+            if (err) {
+                console.error(err);
+            }
+            resolve(value.result);
+            console.log(value);
+        };
+        qr.decode(image.bitmap);
+    });
+  });
+
+}
+
 
 var getChecksWithProducts = function(eventId) {
   return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid LEFT JOIN debitor ON debitor.productid = product.id WHERE eventid = $1", [eventId]).then(function(res) {
