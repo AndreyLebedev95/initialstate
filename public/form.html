@@ -1,0 +1,50 @@
+<html><head></head><body>
+    <div style="
+    border: 1px solid red;
+    margin: 50px;
+    padding: 50px;
+">
+        <h1>Super klevaja forma desiign v massi</h1>
+    <form ref="uploadForm" id="uploadForm" action="http://localhost:3000/uploader" method="post" enctype="multipart/form-data">
+        <input type="text" name="eventId">
+        <input type="text" name="payerId">
+        <input type="file" name="sampleFile">
+        <input type="submit" value="Upload!">
+    </form> 
+    
+    
+    </div>
+
+    <script>
+            
+
+
+
+
+            function b64toBlob(b64Data, contentType, sliceSize) {
+                contentType = contentType || '';
+                sliceSize = sliceSize || 512;
+
+                var byteCharacters = atob(b64Data);
+                var byteArrays = [];
+
+                for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                    var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+                    var byteNumbers = new Array(slice.length);
+                    for (var i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                    }
+
+                    var byteArray = new Uint8Array(byteNumbers);
+
+                    byteArrays.push(byteArray);
+                }
+
+            var blob = new Blob(byteArrays, {type: contentType});
+            return blob;
+        }
+    </script>
+</body>
+
+</html>

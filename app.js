@@ -9,6 +9,7 @@ var Jimp = require("jimp");
 var app = express();
 
 app.use(bodyParser.json());
+app.use(express.static('public'));
 
 /*
 Принимает параметр qr - результат сканирования
@@ -41,23 +42,28 @@ app.post('/uploader', function(req, res) {
   var buffer = sampleFile.data;
 
   getQr(buffer).then(function(result){
-      res.send(result);
+    getProductsModel(result).then(function(jsonResult){
+      products = jsonResult;  
+
+      let checkId = uuid();
+      let body = req.body;
+    
+      bd.query("INSERT INTO checks (id, eventid, seller, payerid) VALUES ($1, $2, $3, $4);", [checkId, body.eventId, products['seller'], body.payerId]);
+      for (var index_product_id = 0; index_product_id < products.items.length; index_product_id++) {
+        let productId = uuid();
+        bd.query("INSERT INTO product (id, name, price, checkid) VALUES ($1, $2, $3, $4);", [productId, products['items'][index_product_id]['name'], products['items'][index_product_id]['price'], checkId]).then(function(res) {
+          console.log(res)
+        }).catch(function(res) {
+          console.log(res)
+        })
+      }
+
+      res.status(200);
+    }).catch(function(error){
+      res.status(404);
+    });
+      
   });
-
-});
-
-app.post('/uploader64', function(req, res) {
-  if (Object.keys(req.files).length == 0) {
-    return res.status(400).send('Файл не загружен');
-  }
-
-  let sampleFile = req.files.sampleFile;
-  var buffer = sampleFile.data;
-  res.send(result);
-
-  // getQr(buffer).then(function(result){
-  //     res.send(result);
-  // });
 
 });
 
@@ -71,8 +77,8 @@ function getQr(buffer){
         }
         var qr = new QrCode();
         qr.callback = function(err, value) {
-            if (err) {
-                console.error(err);
+            if (err || !value) {
+                reject(err);
             }
             resolve(value.result);
             console.log(value);
