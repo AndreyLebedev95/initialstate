@@ -1,26 +1,28 @@
 var express = require('express');
+const request = require('request');
 const uuid = require('uuid/v4');
 var bodyParser = require('body-parser')
 var app = express();
 
 app.use(bodyParser.json());
 
-var products = {
-  seller: 'Magnit',
-  items: [{
-      name: 'potato',
-      price: 50
-    },
-    {
-      name: 'banana',
-      price: 125
-    },
-    {
-      name: 'knife',
-      price: 599
-    }
-  ]
+var products = getProductsModel("t=20181114T1515&s=4420.00&fn=8710000101582032&i=66506&fp=3824248540&n=1");
+
+/*
+Принимает параметр qr - результат сканирования
+*/
+function getProductsModel(qr){
+  var options = {
+    uri: `http://localhost:3002/get?${qr}`,
+    method: 'GET',
+    json:true
+  }
+
+  request(options, function(error, response, body){
+      return body;
+  });
 }
+
 
 var getChecksWithProducts = function(eventId) {
   return bd.query("SELECT * FROM checks LEFT JOIN product ON checks.id = product.checkid WHERE eventid = $1", [eventId]).then(function(res) {
