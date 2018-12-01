@@ -63,7 +63,9 @@ app.post('/uploader', function(req, res) {
       res.sendStatus(500);
     });
       
-  });
+  }).catch(function(error){
+    res.sendStatus(500);
+  });;
 
 });
 
