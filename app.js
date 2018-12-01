@@ -195,24 +195,24 @@ app.get('/get_checks_total/:eventId', function(req, response) {
 
 app.post('/add_product_payer', function(req, res) {
 	var body = req.body;
-  bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [body.personId, body.productId]);
+  bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [body.personId, body.productId]).then(function(){res.sendStatus(200)}).catch(function(){res.sendStatus(500)});
 });
 
 app.post('/add_some_product_payers', function(req, res){
     let body = req.body;
     body.members.forEach(function(personId){
-        bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [personId, body.productId])
+        bd.query("INSERT INTO debitor (personid, productid) VALUES ($1, $2);", [personId, body.productId]).then(function(){res.sendStatus(200)}).catch(function(){res.sendStatus(500)})
     });
 })
 
 app.post('/remove_product_payer', function(req, res) {
 	var body = req.body;
 	console.log(body);
-	bd.query("DELETE FROM debitor WHERE personid = $1 and productid = $2", [body.personId, body.productId]);
+	bd.query("DELETE FROM debitor WHERE personid = $1 and productid = $2", [body.personId, body.productId]).then(function(){res.sendStatus(200)}).catch(function(){res.sendStatus(500)});
 });
 app.post('/remove_all_product_payers', function(req, res) {
 	var body = req.body;
-	bd.query("DELETE FROM debitor WHERE productid = $1", [body.productId]);
+	bd.query("DELETE FROM debitor WHERE productid = $1", [body.productId]).then(function(){res.sendStatus(200)}).catch(function(){res.sendStatus(500)});
 });
 app.post('/get_debitor_list', function(req, res) {
 	var body = req.body;
