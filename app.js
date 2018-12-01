@@ -52,10 +52,11 @@ app.post('/uploader', function(req, res) {
       for (var index_product_id = 0; index_product_id < products.items.length; index_product_id++) {
         let productId = uuid();
         bd.query("INSERT INTO product (id, name, price, checkid) VALUES ($1, $2, $3, $4);", [productId, products['items'][index_product_id]['name'], products['items'][index_product_id]['price'], checkId]).then(function(res) {
-          res.sendStatus(200);
+          
         }).catch(function(res) {
           res.sendStatus(500);
         })
+        res.sendStatus(200);
       }
 
     }).catch(function(error){
@@ -97,7 +98,7 @@ var getChecksWithProducts = function(eventId) {
         let product = {};
         product[res.rows[i].id] = {
           name: res.rows[i].name,
-          price: res.rows[i].price,
+          price: res.rows[i].price/100,
           productId: res.rows[i].id,
           persons: res.rows[i].personid ? [res.rows[i].personid] : []
         }
@@ -109,7 +110,7 @@ var getChecksWithProducts = function(eventId) {
         if (!temp[res.rows[i].checkid].products[res.rows[i].id]) {
           temp[res.rows[i].checkid].products[res.rows[i].id] = ({
             name: res.rows[i].name,
-            price: res.rows[i].price,
+            price: res.rows[i].price/100,
             productId: res.rows[i].id,
             persons: res.rows[i].personid ? [res.rows[i].personid] : []
           })
