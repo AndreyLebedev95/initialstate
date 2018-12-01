@@ -384,11 +384,17 @@ app.post('/delete_payment', function(req, res) {
 
 });
 app.post('/is_fixed', function(req, res) {
-	bd.query('SELECT payments.event_id FROM payments WHERE event_id = $1',[req.body.event_id]).then(function(result)
-	{
-		if(result.rows.length !== 0)
-			res.send(true);
-	});
+	// bd.query('SELECT payments.event_id FROM payments WHERE event_id = $1',[req.body.event_id]).then(function(result)
+	// {
+	// 	if(result.rows.length !== 0)
+	// 		res.send(true);
+	// });
+    bd.query('SELECT fixed.state FROM fixed WHERE event_id = $1', [req.body.event_id]).then(function(result) {
+        res.send(!!result.rows.length);
+    });
+});
+app.post('/to_fix', function(req, res) {
+    bd.query('INSERT INTO fixed (event_id, state)', [req.body.event_id, true]);
 });
 app.listen(3000, function() {
   console.log('start');
