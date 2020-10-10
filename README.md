@@ -1,2 +1,2 @@
-Tesnsor hackaton.
+Tesnsor hackathon.
 Separate bill project.
